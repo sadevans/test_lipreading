@@ -216,21 +216,12 @@ class MyDatasetInference(Dataset):
     @staticmethod
     def wer(predict, truth):
         """Word Error Rate"""  
-        print(zip(predict, truth)) 
-        print(predict)
-        for p in zip(predict.split(' '), truth.split(' ')):
-          print(p)
         word_pairs = [(p[0], p[1]) for p in zip(predict.split(' '), truth.split(' '))]
-        print(word_pairs)
         wer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in word_pairs]
         return wer
         
     @staticmethod
     def cer(predict, truth):
         """Character Error Rate"""  
-        for p in zip(predict, truth):
-          # print((p[0], p[1])/len(p[1]))
-          print(p[0], p[1])
-
         cer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in zip(predict, truth)]
         return cer

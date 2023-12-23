@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.init as init
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-import math
 import tempfile
 import os
 import cv2
@@ -16,8 +15,7 @@ import time
 from model import LipNet
 import editdistance
 import torch.optim as optim
-import re
-import json
+
 import subprocess
 
 opt = __import__('options')
@@ -139,18 +137,6 @@ def array2txt(arr, start):
             txt.append(letters[n - start])     
     return ''.join(txt).strip()
 
-# @staticmethod
-# def WER(predict, truth):
-#     """Word Error Rate"""        
-#     word_pairs = [(p[0].split(' '), p[1].split(' ')) for p in zip(predict, truth)]
-#     wer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in word_pairs]
-#     return wer
-    
-# @staticmethod
-# def CER(predict, truth):
-#     """Character Error Rate"""       
-#     cer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in zip(predict, truth)]
-#     return cer
 
 def load_annotation(name):
     with open(name, 'r') as f:
@@ -224,24 +210,10 @@ if __name__ == '__main__':
         for (i_iter, input) in enumerate(loader):            
             vid = input.get('vid').cuda()
             txt = input.get('txt').cuda()
-            # vid_len = input.get('vid_len').cuda()
             txt_len = input.get('txt_len').cuda()
-            print(txt_len)
-
             y_pred = model(vid)
-
             annotation_pred = ctc_decode(y_pred[0])
-            print(annotation_pred[-1])
-
-            # pred_ann = [MyDatasetInference.txt2arr(txt[_], start=1) for _ in range(txt.size(0))]
             truth_txt = [MyDatasetInference.arr2txt(txt[_], start=1) for _ in range(txt.size(0))]
-            # pred_ann = annotation_pred[-1].split(' ')
-
-            print([annotation_pred[-1]])
-            # truth_txt = [MyDatasetInference.txt2arr(txt[_], start=1) for _ in range(txt.size(0))]
-            print(truth_txt)
-            # truth_txt = [MyDatasetInference.arr2txt(txt[_], start=1) for _ in range(txt_len)]
-
             wer.extend(MyDatasetInference.wer(annotation_pred[-1], truth_txt[0])) 
             cer.extend(MyDatasetInference.cer(annotation_pred[-1], truth_txt[0]))
         print(wer, cer)

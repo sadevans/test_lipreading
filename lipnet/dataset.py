@@ -1,16 +1,10 @@
 import numpy as np
-import glob
-import time
 import cv2
 import os
 from torch.utils.data import Dataset
 from cvtransforms import *
 import torch
 import glob
-import re
-import copy
-import json
-import random
 import editdistance
 
     
