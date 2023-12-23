@@ -227,7 +227,7 @@ if __name__ == '__main__':
             vid_len = input.get('vid_len').cuda()
             txt_len = input.get('txt_len').cuda()
 
-            y_pred = model(vid)
+            y_pred = model(vid[None,...].cuda())
 
             annotation_pred = ctc_decode(y_pred[0])
             print(annotation_pred[-1])

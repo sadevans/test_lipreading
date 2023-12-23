@@ -22,6 +22,7 @@ class MyDatasetInference(Dataset):
 
     def __init__(self, video_path, anno_path):
         self.anno_path = anno_path
+        self.video_path = video_path
 
         self.videos = [os.path.join(video_path, video) for video in os.listdir(video_path)]
         print(self.videos)
@@ -32,7 +33,8 @@ class MyDatasetInference(Dataset):
         self.data = []
         for vid in self.videos:
             # items = vid.split(os.path.sep)
-            name = vid.split('/')[-1][:-4]       
+            name = vid.split('/')[-1][:-4]  
+            print(name)     
             self.data.append((vid, name))
         
                 
@@ -40,6 +42,7 @@ class MyDatasetInference(Dataset):
         # (vid, spk, name) = self.data[idx]
         (vid, name) = self.data[idx]
         # vid = self._load_vid(vid)
+        print(vid, name)
         vid, img_p = MyDatasetInference._load_video(vid)
         anno = self._load_anno(os.path.join(self.anno_path, name + '.txt'))
 
@@ -165,7 +168,9 @@ class MyDatasetInference(Dataset):
     def _load_anno(self, name):
         with open(name, 'r') as f:
             lines = [line.strip().split(' ') for line in f.readlines()]
+            print(lines)
             txt = [line[2] for line in lines]
+            print(txt)
             txt = list(filter(lambda s: not s.upper() in ['SIL', 'SP'], txt))
         return MyDatasetInference.txt2arr(' '.join(txt).upper(), 1)
     
