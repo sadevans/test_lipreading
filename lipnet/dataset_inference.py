@@ -34,7 +34,7 @@ class MyDatasetInference(Dataset):
         self.data = []
         for vid in self.videos:
             # items = vid.split(os.path.sep)
-            name = vid.split('/')[-1]         
+            name = vid.split('/')[-1][:-4]       
             self.data.append((vid, name))
         
                 
@@ -42,7 +42,7 @@ class MyDatasetInference(Dataset):
         # (vid, spk, name) = self.data[idx]
         (vid, name) = self.data[idx]
         # vid = self._load_vid(vid)
-        vid, img_p = self._load_video(vid)
+        vid, img_p = MyDatasetInference._load_video(vid)
         anno = self._load_anno(os.path.join(self.anno_path, name + '.txt'))
 
         # if(self.phase == 'train'):
@@ -59,7 +59,7 @@ class MyDatasetInference(Dataset):
         #     'txt': torch.LongTensor(anno),
         #     'txt_len': anno_len,
         #     'vid_len': vid_len}
-        return {'vid': torch.FloatTensor(vid[None,...]), 
+        return {'vid': vid, 
             'txt': torch.LongTensor(anno),
             'txt_len': anno_len,
             'vid_len': vid_len}
