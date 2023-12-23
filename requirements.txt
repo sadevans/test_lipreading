@@ -1,0 +1,9 @@
+torch==2.1.0
+# face-alignment==1.3.4
+face-alignment==1.1.1
+opencv-python>=3.4.2
+
+# pytorch-lightning==1.5.10
+# sentencepiece
+# av
+# hydra-core --upgrade
