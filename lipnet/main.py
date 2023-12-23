@@ -106,6 +106,16 @@ def load_video(file):
 
     return video, p
 
+
+def ctc_decode(pred):
+    pred = pred.argmax(-1)
+    t = pred.size(0)
+    result = []
+    for i in range(t+1):
+        result.append(MyDataset.ctc_arr2txt(pred[:i], start=1))
+    return result
+
+
 if __name__ == '__main__':
     opt = __import__('options')
     os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu
@@ -123,8 +133,12 @@ if __name__ == '__main__':
         print('miss matched params:{}'.format(missed_params))
         model_dict.update(pretrained_dict)
         model.load_state_dict(model_dict)
-
-
-
     else:
         print('Please set pretrained weights')
+        exit
+
+    video, img_p = load_video(sys.argv[1])
+    y_pred = model(video[None,...].cuda())
+    annotation_pred = ctc_decode(y_pred[0])
+
+
