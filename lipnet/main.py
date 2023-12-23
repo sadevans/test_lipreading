@@ -237,6 +237,7 @@ if __name__ == '__main__':
 
             wer.extend(MyDatasetInference.wer(annotation_pred, truth_txt)) 
             cer.extend(MyDatasetInference.cer(annotation_pred, truth_txt))
+        print(wer, cer)
 
 
 
