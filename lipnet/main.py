@@ -9,11 +9,12 @@ import os
 import cv2
 import sys
 from pathlib import Path
-from dataset import MyDataset
+from lipnet.dataset_inference import MyDatasetInference
 import numpy as np
 import face_alignment
 import time
 from model import LipNet
+import editdistance
 import torch.optim as optim
 import re
 import json
@@ -115,7 +116,7 @@ def ctc_decode(pred):
     t = pred.size(0)
     result = []
     for i in range(t+1):
-        result.append(MyDataset.ctc_arr2txt(pred[:i], start=1))
+        result.append(MyDatasetInference.ctc_arr2txt(pred[:i], start=1))
     return result
 
 
@@ -134,6 +135,18 @@ def array2txt(arr, start):
             txt.append(letters[n - start])     
     return ''.join(txt).strip()
 
+# @staticmethod
+# def WER(predict, truth):
+#     """Word Error Rate"""        
+#     word_pairs = [(p[0].split(' '), p[1].split(' ')) for p in zip(predict, truth)]
+#     wer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in word_pairs]
+#     return wer
+    
+# @staticmethod
+# def CER(predict, truth):
+#     """Character Error Rate"""       
+#     cer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in zip(predict, truth)]
+#     return cer
 
 def load_annotation(name):
     with open(name, 'r') as f:
@@ -141,7 +154,8 @@ def load_annotation(name):
         txt = [line[2] for line in lines]
         txt = list(filter(lambda s: not s.upper() in ['SIL', 'SP'], txt))
 
-    return txt2array(' '.join(txt).upper(), 1)
+    return MyDatasetInference.txt2arr(' '.join(txt).upper(), 1)
+
 
 if __name__ == '__main__':
     opt = __import__('options')
@@ -173,7 +187,7 @@ if __name__ == '__main__':
         flag_annotation = False
         video, img_p = load_video(sys.argv[1])
 
-        if Path(sys.argv[2]).is_file():
+        if len(sys.argv) >=3 and Path(sys.argv[2]).is_file():
             flag_annotation = True
             annotation_truth = load_annotation(sys.argv[2])
         y_pred = model(video[None,...].cuda())
@@ -181,14 +195,14 @@ if __name__ == '__main__':
         annotation_pred = ctc_decode(y_pred[0])
 
         if flag_annotation:
-            truth_annotation = [array2txt(annotation_truth[_], start=1) for _ in range(annotation_truth.size(0))]
-            wer.extend(MyDataset.wer(annotation_pred, truth_annotation)) 
-            cer.extend(MyDataset.cer(annotation_pred, truth_annotation))
+            truth_annotation = [MyDatasetInference.arr2txt(annotation_truth[_], start=1) for _ in range(annotation_truth.size(0))]
+            wer.extend(MyDatasetInference.wer(annotation_pred, truth_annotation)) 
+            cer.extend(MyDatasetInference.cer(annotation_pred, truth_annotation))
 
-    elif path_obj.is_dir():
-        dataset = MyDataset(opt.video_path,
-                opt.anno_path,
-                opt.val_list,
-                opt.vid_padding,
-                opt.txt_padding,
-                'test')
+    # elif path_obj.is_dir():
+    #     dataset = MyDatasetInference(opt.video_path,
+    #             opt.anno_path,
+    #             opt.val_list,
+    #             opt.vid_padding,
+    #             opt.txt_padding,
+    #             'test')
