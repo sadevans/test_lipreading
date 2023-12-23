@@ -222,7 +222,7 @@ if __name__ == '__main__':
         cer = []
 
         for (i_iter, input) in enumerate(loader):            
-            vid = input.get('vid').cuda()
+            vid = input.get('vid')
             txt = input.get('txt').cuda()
             vid_len = input.get('vid_len').cuda()
             txt_len = input.get('txt_len').cuda()
