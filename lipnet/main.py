@@ -215,9 +215,7 @@ if __name__ == '__main__':
 
     elif path_obj.is_dir():
         dataset = MyDatasetInference(opt.video_path,
-                opt.anno_path,
-                opt.vid_padding,
-                opt.txt_padding)
+                opt.anno_path)
         
         loader = dataset2dataloader(dataset, shuffle=False)
         wer = []

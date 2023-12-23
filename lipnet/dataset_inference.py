@@ -20,10 +20,8 @@ import subprocess
 class MyDatasetInference(Dataset):
     letters = [' ', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
-    def __init__(self, video_path, anno_path, vid_pad, txt_pad):
+    def __init__(self, video_path, anno_path):
         self.anno_path = anno_path
-        # self.vid_pad = vid_pad
-        # self.txt_pad = txt_pad
 
         self.videos = [os.path.join(video_path, video) for video in os.listdir(video_path)]
         print(self.videos)
