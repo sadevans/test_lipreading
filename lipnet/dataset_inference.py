@@ -14,42 +14,52 @@ import random
 import tempfile
 import face_alignment
 import editdistance
+import subprocess
 
     
 class MyDatasetInference(Dataset):
     letters = [' ', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
-    def __init__(self, video_path, anno_path, file_list, vid_pad, txt_pad, phase):
+    def __init__(self, video_path, anno_path, vid_pad, txt_pad):
         self.anno_path = anno_path
-        self.vid_pad = vid_pad
-        self.txt_pad = txt_pad
-        self.phase = phase
-        
-        with open(file_list, 'r') as f:
-            self.videos = [os.path.join(video_path, line.strip()) for line in f.readlines()]
+        # self.vid_pad = vid_pad
+        # self.txt_pad = txt_pad
+
+        self.videos = [os.path.join(video_path, video) for video in os.listdir(video_path)]
+        print(self.videos)
+
+        # with open(file_list, 'r') as f:
+        #     self.videos = [os.path.join(video_path, line.strip()) for line in f.readlines()]
             
         self.data = []
         for vid in self.videos:
-            items = vid.split(os.path.sep)            
-            self.data.append((vid, items[-4], items[-1]))
+            # items = vid.split(os.path.sep)
+            name = vid.split('/')[-1]         
+            self.data.append((vid, name))
         
                 
     def __getitem__(self, idx):
-        (vid, spk, name) = self.data[idx]
-        vid = self._load_vid(vid)
-        anno = self._load_anno(os.path.join(self.anno_path, spk, 'align', name + '.align'))
+        # (vid, spk, name) = self.data[idx]
+        (vid, name) = self.data[idx]
+        # vid = self._load_vid(vid)
+        vid, img_p = self._load_video(vid)
+        anno = self._load_anno(os.path.join(self.anno_path, name + '.txt'))
 
-        if(self.phase == 'train'):
-            vid = HorizontalFlip(vid)
+        # if(self.phase == 'train'):
+        #     vid = HorizontalFlip(vid)
           
-        vid = ColorNormalize(vid)                   
+        # vid = ColorNormalize(vid)                   
         
         vid_len = vid.shape[0]
         anno_len = anno.shape[0]
-        vid = self._padding(vid, self.vid_pad)
-        anno = self._padding(anno, self.txt_pad)
+        # vid = self._padding(vid, self.vid_pad)
+        # anno = self._padding(anno, self.txt_pad)
         
-        return {'vid': torch.FloatTensor(vid.transpose(3, 0, 1, 2)), 
+        # return {'vid': torch.FloatTensor(vid.transpose(3, 0, 1, 2)), 
+        #     'txt': torch.LongTensor(anno),
+        #     'txt_len': anno_len,
+        #     'vid_len': vid_len}
+        return {'vid': torch.FloatTensor(vid[None,...]), 
             'txt': torch.LongTensor(anno),
             'txt_len': anno_len,
             'vid_len': vid_len}
@@ -112,13 +122,14 @@ class MyDatasetInference(Dataset):
                                         c2.T - (s2 / s1) * R * c1.T)),
                             np.matrix([0., 0., 1.])])
     
-    def _load_video(self, file):
+    def _load_video(file):
         """Load video from a specific path, extract lips patches 
         and make video from extracted lips patches"""
 
         p = tempfile.mkdtemp()
         cmd = 'ffmpeg -i \'{}\' -qscale:v 2 -r 25 \'{}/%d.jpg\''.format(file, p)
-        os.system(cmd)
+        # os.system(cmd)
+        subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         
         files = os.listdir(p)
         files = sorted(files, key=lambda x: int(os.path.splitext(x)[0]))
@@ -132,13 +143,13 @@ class MyDatasetInference(Dataset):
         fa = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, flip_input=False, device='cuda') # detect facial landmarks
         points = [fa.get_landmarks(I) for I in array]
         
-        front256 = self._get_position(256)
+        front256 = MyDatasetInference._get_position(256)
         video = []
         for point, scene in zip(points, array):
             if(point is not None):
                 shape = np.array(point[0])
                 shape = shape[17:]
-                M = self._transformation_from_points(np.matrix(shape), np.matrix(front256))
+                M = MyDatasetInference._transformation_from_points(np.matrix(shape), np.matrix(front256))
             
                 img = cv2.warpAffine(scene, M[:2], (256, 256))
                 (x, y) = front256[-20:].mean(0).astype(np.int32)

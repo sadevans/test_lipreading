@@ -4,29 +4,24 @@ import torch.nn.init as init
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import math
-import tempfile
 import os
-import cv2
 import sys
-from pathlib import Path
-from lipnet.dataset_inference import MyDatasetInference
+from lipnet.dataset_inference import MyDataset
 import numpy as np
-import face_alignment
 import time
 from model import LipNet
-import editdistance
 import torch.optim as optim
 import re
 import json
-import subprocess
+import tempfile
+import shutil
+import cv2
+import face_alignment
 
-opt = __import__('options')
-
-letters = [' ', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
 
 def get_position(size, padding=0.25):
-    """Function for crop lips area"""
+    
     x = [0.000213256, 0.0752622, 0.18113, 0.29077, 0.393397, 0.586856, 0.689483, 0.799124,
                     0.904991, 0.98004, 0.490127, 0.490127, 0.490127, 0.490127, 0.36688, 0.426036,
                     0.490127, 0.554217, 0.613373, 0.121737, 0.187122, 0.265825, 0.334606, 0.260918,
@@ -51,6 +46,27 @@ def get_position(size, padding=0.25):
     y = y * size
     return np.array(list(zip(x, y)))
 
+def cal_area(anno):
+    return (anno[:,0].max() - anno[:,0].min()) * (anno[:,1].max() - anno[:,1].min()) 
+
+def output_video(p, txt, dst):
+    files = os.listdir(p)
+    files = sorted(files, key=lambda x: int(os.path.splitext(x)[0]))
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    
+    for file, line in zip(files, txt):
+        img = cv2.imread(os.path.join(p, file))
+        h, w, _ = img.shape
+        img = cv2.putText(img, line, (w//8, 11*h//12), font, 1.2, (0, 0, 0), 3, cv2.LINE_AA)
+        img = cv2.putText(img, line, (w//8, 11*h//12), font, 1.2, (255, 255, 255), 0, cv2.LINE_AA)  
+        h = h // 2
+        w = w // 2
+        img = cv2.resize(img, (w, h))     
+        cv2.imwrite(os.path.join(p, file), img)
+    
+    cmd = "ffmpeg -y -i {}/%d.jpg -r 25 \'{}\'".format(p, dst)
+    os.system(cmd)
 
 def transformation_from_points(points1, points2):
     points1 = points1.astype(np.float64)
@@ -71,15 +87,10 @@ def transformation_from_points(points1, points2):
                                        c2.T - (s2 / s1) * R * c1.T)),
                          np.matrix([0., 0., 1.])])
 
-
 def load_video(file):
-    """Load video from a specific path, extract lips patches 
-    and make video from extracted lips patches"""
-
     p = tempfile.mkdtemp()
     cmd = 'ffmpeg -i \'{}\' -qscale:v 2 -r 25 \'{}/%d.jpg\''.format(file, p)
-    # os.system(cmd)
-    subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    os.system(cmd)
     
     files = os.listdir(p)
     files = sorted(files, key=lambda x: int(os.path.splitext(x)[0]))
@@ -90,7 +101,7 @@ def load_video(file):
     array = list(filter(lambda im: not im is None, array))
     #array = [cv2.resize(im, (100, 50), interpolation=cv2.INTER_LANCZOS4) for im in array]
     
-    fa = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, flip_input=False, device='cuda') # detect facial landmarks
+    fa = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, flip_input=False, device='cuda')
     points = [fa.get_landmarks(I) for I in array]
     
     front256 = get_position(256)
@@ -115,70 +126,24 @@ def load_video(file):
     return video, p
 
 
-def ctc_decode(pred):
-    pred = pred.argmax(-1)
-    t = pred.size(0)
+def ctc_decode(y):
+    y = y.argmax(-1)
+    t = y.size(0)
     result = []
     for i in range(t+1):
-        result.append(MyDatasetInference.ctc_arr2txt(pred[:i], start=1))
+        result.append(MyDataset.ctc_arr2txt(y[:i], start=1))
     return result
+        
 
-
-@staticmethod
-def txt2array(txt, start):
-    arr = []
-    for c in list(txt):
-        arr.append(letters.index(c) + start)
-    return np.array(arr)
-
-@staticmethod
-def array2txt(arr, start):
-    txt = []
-    for n in arr:
-        if(n >= start):
-            txt.append(letters[n - start])     
-    return ''.join(txt).strip()
-
-# @staticmethod
-# def WER(predict, truth):
-#     """Word Error Rate"""        
-#     word_pairs = [(p[0].split(' '), p[1].split(' ')) for p in zip(predict, truth)]
-#     wer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in word_pairs]
-#     return wer
+if(__name__ == '__main__'):
+    opt = __import__('options')
+    os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu    
     
-# @staticmethod
-# def CER(predict, truth):
-#     """Character Error Rate"""       
-#     cer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in zip(predict, truth)]
-#     return cer
-
-def load_annotation(name):
-    with open(name, 'r') as f:
-        lines = [line.strip().split(' ') for line in f.readlines()]
-        txt = [line[2] for line in lines]
-        txt = list(filter(lambda s: not s.upper() in ['SIL', 'SP'], txt))
-
-    return MyDatasetInference.txt2arr(' '.join(txt).upper(), 1)
-
-
-def dataset2dataloader(dataset, num_workers=opt.num_workers, shuffle=True):
-    return DataLoader(dataset,
-        batch_size = opt.batch_size, 
-        shuffle = shuffle,
-        num_workers = num_workers,
-        drop_last = False)
-
-
-if __name__ == '__main__':
-    # opt = __import__('options')
-    os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu
-
-    tic = time.time()
-
+    
     model = LipNet()
     model = model.cuda()
-
     net = nn.DataParallel(model).cuda()
+
     if(hasattr(opt, 'weights')):
         pretrained_dict = torch.load(opt.weights)
         model_dict = model.state_dict()
@@ -188,62 +153,14 @@ if __name__ == '__main__':
         print('miss matched params:{}'.format(missed_params))
         model_dict.update(pretrained_dict)
         model.load_state_dict(model_dict)
-    else:
-        print('Please set pretrained weights')
-        exit
-
-
-    path_obj = Path(sys.argv[1])
-    if path_obj.is_file():
-        flag_annotation = False
-        video, img_p = MyDatasetInference._load_video(sys.argv[1])
-
-        if len(sys.argv) >=3 and Path(sys.argv[2]).is_file():
-            flag_annotation = True
-            annotation_truth = load_annotation(sys.argv[2])
-        y_pred = model(video[None,...].cuda())
-
-        annotation_pred = ctc_decode(y_pred[0])
-        print(annotation_pred[-1])
-
-        if flag_annotation:
-            wer = []
-            cer = []
-            truth_annotation = [MyDatasetInference.arr2txt(annotation_truth[_], start=1) for _ in range(annotation_truth.size(0))]
-            wer.extend(MyDatasetInference.wer(annotation_pred, truth_annotation)) 
-            cer.extend(MyDatasetInference.cer(annotation_pred, truth_annotation))
-
-    elif path_obj.is_dir():
-        dataset = MyDatasetInference(opt.video_path,
-                opt.anno_path,
-                opt.vid_padding,
-                opt.txt_padding)
         
-        loader = dataset2dataloader(dataset, shuffle=False)
-        wer = []
-        cer = []
-
-        for (i_iter, input) in enumerate(loader):            
-            vid = input.get('vid').cuda()
-            txt = input.get('txt').cuda()
-            vid_len = input.get('vid_len').cuda()
-            txt_len = input.get('txt_len').cuda()
-
-            y_pred = model(vid)
-
-            annotation_pred = ctc_decode(y_pred[0])
-            print(annotation_pred[-1])
-
-            # truth_txt = [MyDatasetInference.arr2txt(txt[_], start=1) for _ in range(txt.size(0))]
-            truth_txt = [MyDatasetInference.arr2txt(txt[_], start=1) for _ in range(txt_len)]
-
-            wer.extend(MyDatasetInference.wer(annotation_pred, truth_txt)) 
-            cer.extend(MyDatasetInference.cer(annotation_pred, truth_txt))
-
-
-
-
-
-        
-        
-
+    video, img_p = load_video(sys.argv[1])
+    y = model(video[None,...].cuda())
+    txt = ctc_decode(y[0])
+    
+    output_video(img_p, txt, sys.argv[2])
+    
+    shutil.rmtree(img_p)
+    
+    
+    
