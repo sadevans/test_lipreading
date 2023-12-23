@@ -176,7 +176,6 @@ if __name__ == '__main__':
         if Path(sys.argv[2]).is_file():
             flag_annotation = True
             annotation_truth = load_annotation(sys.argv[2])
-        txt = input.get('txt').cuda()
         y_pred = model(video[None,...].cuda())
 
         annotation_pred = ctc_decode(y_pred[0])
