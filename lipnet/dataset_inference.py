@@ -169,7 +169,8 @@ class MyDatasetInference(Dataset):
         with open(name, 'r') as f:
             lines = [line.strip().split(' ') for line in f.readlines()]
             print(lines)
-            txt = [line[2] for line in lines]
+            # txt = [line[2] for line in lines]
+            txt = [word for word in lines]
             print(txt)
             txt = list(filter(lambda s: not s.upper() in ['SIL', 'SP'], txt))
         return MyDatasetInference.txt2arr(' '.join(txt).upper(), 1)
