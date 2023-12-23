@@ -220,7 +220,7 @@ class MyDatasetInference(Dataset):
         print(predict)
         for p in zip(predict.split(' '), truth.split(' ')):
           print(p)
-        word_pairs = [(p[0].split(' '), p[1].split(' ')) for p in zip(predict.split(' '), truth.split(' '))]
+        word_pairs = [(p[0], p[1]) for p in zip(predict.split(' '), truth.split(' '))]
         print(word_pairs)
         wer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in word_pairs]
         return wer
