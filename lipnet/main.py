@@ -8,6 +8,7 @@ import tempfile
 import os
 import cv2
 import sys
+from pathlib import Path
 from dataset import MyDataset
 import numpy as np
 import face_alignment
@@ -16,6 +17,8 @@ from model import LipNet
 import torch.optim as optim
 import re
 import json
+
+letters = [' ', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
 
 def get_position(size, padding=0.25):
@@ -116,9 +119,36 @@ def ctc_decode(pred):
     return result
 
 
+@staticmethod
+def txt2array(txt, start):
+    arr = []
+    for c in list(txt):
+        arr.append(letters.index(c) + start)
+    return np.array(arr)
+
+@staticmethod
+def array2txt(arr, start):
+    txt = []
+    for n in arr:
+        if(n >= start):
+            txt.append(letters[n - start])     
+    return ''.join(txt).strip()
+
+
+def load_annotation(name):
+    with open(name, 'r') as f:
+        lines = [line.strip().split(' ') for line in f.readlines()]
+        txt = [line[2] for line in lines]
+        txt = list(filter(lambda s: not s.upper() in ['SIL', 'SP'], txt))
+
+    return txt2array(' '.join(txt).upper(), 1)
+
 if __name__ == '__main__':
     opt = __import__('options')
     os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu
+    wer = []
+    cer = []
+    tic = time.time()
 
     model = LipNet()
     model = model.cuda()
@@ -137,8 +167,29 @@ if __name__ == '__main__':
         print('Please set pretrained weights')
         exit
 
-    video, img_p = load_video(sys.argv[1])
-    y_pred = model(video[None,...].cuda())
-    annotation_pred = ctc_decode(y_pred[0])
 
+    path_obj = Path(sys.argv[1])
+    if path_obj.is_file():
+        flag_annotation = False
+        video, img_p = load_video(sys.argv[1])
 
+        if Path(sys.argv[2]).is_file():
+            flag_annotation = True
+            annotation_truth = load_annotation(sys.argv[2])
+        txt = input.get('txt').cuda()
+        y_pred = model(video[None,...].cuda())
+
+        annotation_pred = ctc_decode(y_pred[0])
+
+        if flag_annotation:
+            truth_annotation = [array2txt(annotation_truth[_], start=1) for _ in range(annotation_truth.size(0))]
+            wer.extend(MyDataset.wer(annotation_pred, truth_annotation)) 
+            cer.extend(MyDataset.cer(annotation_pred, truth_annotation))
+
+    elif path_obj.is_dir():
+        dataset = MyDataset(opt.video_path,
+                opt.anno_path,
+                opt.val_list,
+                opt.vid_padding,
+                opt.txt_padding,
+                'test')
