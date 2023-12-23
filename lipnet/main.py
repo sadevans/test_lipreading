@@ -222,22 +222,30 @@ if __name__ == '__main__':
         cer = []
 
         for (i_iter, input) in enumerate(loader):            
-            vid = input.get('vid')
+            vid = input.get('vid').cuda()
             txt = input.get('txt').cuda()
-            vid_len = input.get('vid_len').cuda()
+            # vid_len = input.get('vid_len').cuda()
             txt_len = input.get('txt_len').cuda()
+            print(txt_len)
 
-            y_pred = model(vid[None,...].cuda())
+            y_pred = model(vid)
 
             annotation_pred = ctc_decode(y_pred[0])
             print(annotation_pred[-1])
 
-            # truth_txt = [MyDatasetInference.arr2txt(txt[_], start=1) for _ in range(txt.size(0))]
-            truth_txt = [MyDatasetInference.arr2txt(txt[_], start=1) for _ in range(txt_len)]
+            # pred_ann = [MyDatasetInference.txt2arr(txt[_], start=1) for _ in range(txt.size(0))]
+            truth_txt = [MyDatasetInference.arr2txt(txt[_], start=1) for _ in range(txt.size(0))]
+            # pred_ann = annotation_pred[-1].split(' ')
 
-            wer.extend(MyDatasetInference.wer(annotation_pred, truth_txt)) 
-            cer.extend(MyDatasetInference.cer(annotation_pred, truth_txt))
+            print([annotation_pred[-1]])
+            # truth_txt = [MyDatasetInference.txt2arr(txt[_], start=1) for _ in range(txt.size(0))]
+            print(truth_txt)
+            # truth_txt = [MyDatasetInference.arr2txt(txt[_], start=1) for _ in range(txt_len)]
+
+            wer.extend(MyDatasetInference.wer(annotation_pred[-1], truth_txt[0])) 
+            cer.extend(MyDatasetInference.cer(annotation_pred[-1], truth_txt[0]))
         print(wer, cer)
+        print(np.array(wer).mean(), np.array(cer).mean())
 
 
 

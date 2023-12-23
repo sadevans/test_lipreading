@@ -43,7 +43,7 @@ class MyDatasetInference(Dataset):
         (vid, name) = self.data[idx]
         # vid = self._load_vid(vid)
         print(vid, name)
-        vid, img_p = MyDatasetInference._load_video(vid)
+        video, img_p = MyDatasetInference._load_video(vid)
         anno = self._load_anno(os.path.join(self.anno_path, name + '.txt'))
 
         # if(self.phase == 'train'):
@@ -51,7 +51,7 @@ class MyDatasetInference(Dataset):
           
         # vid = ColorNormalize(vid)                   
         
-        vid_len = vid.shape[0]
+        # vid_len = vid.shape[0]
         anno_len = anno.shape[0]
         # vid = self._padding(vid, self.vid_pad)
         # anno = self._padding(anno, self.txt_pad)
@@ -60,10 +60,13 @@ class MyDatasetInference(Dataset):
         #     'txt': torch.LongTensor(anno),
         #     'txt_len': anno_len,
         #     'vid_len': vid_len}
-        return {'vid': vid, 
+        # return {'vid': vid[None,...], 
+        #     'txt': torch.LongTensor(anno),
+        #     'txt_len': anno_len,
+        #     'vid_len': vid_len}
+        return {'vid': video, 
             'txt': torch.LongTensor(anno),
-            'txt_len': anno_len,
-            'vid_len': vid_len}
+            'txt_len': anno_len}
             
     def __len__(self):
         return len(self.data)
@@ -209,16 +212,25 @@ class MyDatasetInference(Dataset):
                     txt.append(MyDatasetInference.letters[n - start])                
             pre = n
         return ''.join(txt).strip()
-            
+
     @staticmethod
     def wer(predict, truth):
-        """Word Error Rate"""        
-        word_pairs = [(p[0].split(' '), p[1].split(' ')) for p in zip(predict, truth)]
+        """Word Error Rate"""  
+        print(zip(predict, truth)) 
+        print(predict)
+        for p in zip(predict.split(' '), truth.split(' ')):
+          print(p)
+        word_pairs = [(p[0].split(' '), p[1].split(' ')) for p in zip(predict.split(' '), truth.split(' '))]
+        print(word_pairs)
         wer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in word_pairs]
         return wer
         
     @staticmethod
     def cer(predict, truth):
-        """Character Error Rate"""       
+        """Character Error Rate"""  
+        for p in zip(predict, truth):
+          # print((p[0], p[1])/len(p[1]))
+          print(p[0], p[1])
+
         cer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in zip(predict, truth)]
         return cer
