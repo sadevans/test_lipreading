@@ -1,6 +1,5 @@
 gpu = '0'
 random_seed = 0
-data_type = 'unseen'
 video_path = './data/vid'
 anno_path = './data/annotate'
 batch_size = 1
