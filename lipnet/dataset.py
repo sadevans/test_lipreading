@@ -11,6 +11,7 @@ import re
 import copy
 import json
 import random
+import tempfile
 import face_alignment
 import editdistance
 
