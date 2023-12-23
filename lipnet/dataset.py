@@ -108,12 +108,14 @@ class MyDataset(Dataset):
         return ''.join(txt).strip()
             
     @staticmethod
-    def wer(predict, truth):        
+    def wer(predict, truth):
+        """Word Error Rate"""        
         word_pairs = [(p[0].split(' '), p[1].split(' ')) for p in zip(predict, truth)]
         wer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in word_pairs]
         return wer
         
     @staticmethod
-    def cer(predict, truth):        
+    def cer(predict, truth):
+        """Character Error Rate"""       
         cer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in zip(predict, truth)]
         return cer
