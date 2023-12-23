@@ -9,7 +9,7 @@ import os
 import cv2
 import sys
 from pathlib import Path
-from lipnet.dataset_inference import MyDatasetInference
+from dataset_inference import MyDatasetInference
 import numpy as np
 import face_alignment
 import time
