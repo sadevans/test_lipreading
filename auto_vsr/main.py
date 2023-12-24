@@ -49,14 +49,16 @@ def main(cfg):
     pipeline = InferencePipeline(cfg)
     transcript = pipeline(cfg.file_path)
     transcript_truth = load_annotation(cfg.anno_path)
+    print('transcript truth: ', transcript_truth)
     truth_transcript = [arr2txt(transcript_truth[_], start=1) for _ in range(truth_transcript.size(0))]
+    print('truth transcript: ', truth_transcript)
     wer = []
     cer = []
     print(f"transcript: {transcript}")
 
-    wer.extend(WER(transcript, truth_txt[0])) 
-    cer.extend(CER(transcript, truth_txt[0]))
-
+    wer.extend(WER(transcript, truth_transcript[0])) 
+    cer.extend(CER(transcript, truth_transcript[0]))
+    print(wer, cer)
 
 if __name__ == "__main__":
     main()
