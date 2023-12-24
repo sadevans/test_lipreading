@@ -15,6 +15,7 @@ import time
 from model import LipNet
 import editdistance
 import torch.optim as optim
+from metrics import *
 
 import subprocess
 
@@ -196,8 +197,8 @@ if __name__ == '__main__':
             wer = []
             cer = []
             truth_annotation = [MyDatasetInference.arr2txt(annotation_truth[_], start=1) for _ in range(annotation_truth.size(0))]
-            wer.extend(MyDatasetInference.wer(annotation_pred, truth_annotation)) 
-            cer.extend(MyDatasetInference.cer(annotation_pred, truth_annotation))
+            wer.extend(WER(annotation_pred, truth_annotation)) 
+            cer.extend(CER(annotation_pred, truth_annotation))
 
     elif path_obj.is_dir():
         dataset = MyDatasetInference(sys.argv[2],
@@ -214,8 +215,8 @@ if __name__ == '__main__':
             y_pred = model(vid)
             annotation_pred = ctc_decode(y_pred[0])
             truth_txt = [MyDatasetInference.arr2txt(txt[_], start=1) for _ in range(txt.size(0))]
-            wer.extend(MyDatasetInference.wer(annotation_pred[-1], truth_txt[0])) 
-            cer.extend(MyDatasetInference.cer(annotation_pred[-1], truth_txt[0]))
+            wer.extend(WER(annotation_pred[-1], truth_txt[0])) 
+            cer.extend(CER(annotation_pred[-1], truth_txt[0]))
         print(wer, cer)
         print(np.array(wer).mean(), np.array(cer).mean())
 
