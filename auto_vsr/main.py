@@ -44,12 +44,12 @@ class InferencePipeline(torch.nn.Module):
         return torchvision.io.read_video(data_filename, pts_unit="sec")[0].numpy()
 
 
-@hydra.main(version_base="1.3", config_path="configs", config_name="config")
 def main(cfg):
     pipeline = InferencePipeline(cfg)
 
     if Path(cfg.file_path).is_file():
         transcript = pipeline(cfg.file_path)
+        transcript = transcript.replace("'", ' ')
         print(f"TRANSCRIPT: {transcript}")
 
         if len(cfg.anno_path) != 0:
@@ -66,17 +66,25 @@ def main(cfg):
         videos = [os.path.join(cfg.file_path, video) for video in os.listdir(cfg.file_path)]
         for vid in videos:
             transcript = pipeline(vid)
+            transcript = transcript.replace("'", ' ')
             transcripts.append(transcript)
         if len(cfg.anno_path) != 0:
             wer = []
             cer = []
+            # annotations_ = []
             annotations = [os.path.join(cfg.anno_path, ann) for ann in os.listdir(cfg.anno_path)]
             truth_annotations = []
             for transc, ann in zip(transcripts, annotations):
                 transcript_truth = torch.LongTensor([load_annotation(ann)]).cuda()
+                print(transcript_truth)
                 truth_transcript = [arr2txt(transcript_truth[_], start=1) for _ in range(transcript_truth.size(0))]
-                wer.extend(np.array(WER(transc, truth_transcript[0])).mean()) 
-                cer.extend(np.array(CER(transc, truth_transcript[0])).mean())
+                print('transcript:', transc)
+                print('truth transc: ', truth_transcript[0])
+                w = WER(transc, truth_transcript[0])
+                c = CER(transc, truth_transcript[0])
+                print(w, c)
+                wer.append(np.array(WER(transc, truth_transcript[0])).mean()) 
+                cer.append(np.array(CER(transc, truth_transcript[0])).mean())
 
             print(wer, cer)
 
