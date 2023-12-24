@@ -2,6 +2,7 @@ import argparse
 import os
 import requests
 import re
+import gdown
 
 
 def download_pretrained_model(model, model_name='dncnn3.pth'):
@@ -11,15 +12,18 @@ def download_pretrained_model(model, model_name='dncnn3.pth'):
     else:
         os.makedirs(model_dir, exist_ok=True)
         if model_name == 'vsr_trlrs3_23h_base.pth':
-            url = 'https://drive.usercontent.google.com/download?id=1OBEHbStKKFG7VDij14RDLN9VYSdE_Bhs&export=download&authuser=0'
+            url = 'https://drive.google.com/file/d/1OBEHbStKKFG7VDij14RDLN9VYSdE_Bhs'
+        elif model_name == 'vsr_trlrs3_base.pth':
+            url = 'https://drive.google.com/file/d/1aawSjxIL2ewo0W0fg4TBQgR8WMAmPeSL'
+    
+        elif model_name == 'vsr_trlrs3vox2_base.pth':
+            url = 'https://drive.google.com/file/d/1mLAuCnK2y7zbmiHlAXMqPSF_ApGqfbAD'
+        elif model_name == 'vsr_trlrwlrs2lrs3vox2avsp_base.pth': 
+            url = 'https://drive.google.com/file/d/19GA5SqDjAkI5S88Jt5neJRG-q5RUi5wi'   
 
-        # if 'SwinIR' in model_name:
-        #     url = 'https://github.com/JingyunLiang/SwinIR/releases/download/v0.0/{}'.format(model_name)
-        # elif 'VRT' in model_name:
-        #     url = 'https://github.com/JingyunLiang/VRT/releases/download/v0.0/{}'.format(model_name)
-        # else:
-        #     url = 'https://github.com/cszn/KAIR/releases/download/v1.0/{}'.format(model_name)
-        r = requests.get(url, allow_redirects=True)
-        print(f'downloading [{model_dir}/{model_name}] ...')
-        open(os.path.join(model_dir, model_name), 'wb').write(r.content)
-        print('done!')
+    gdown.download(url, model_dir, quite=True)
+
+    # r = requests.get(url, allow_redirects=True)
+    # print(f'downloading [{model_dir}/{model_name}] ...')
+    # open(os.path.join(model_dir, model_name), 'wb').write(r.content)
+    # print('done!')
