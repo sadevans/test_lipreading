@@ -4,13 +4,13 @@ import hydra
 import torch
 import torchaudio
 import torchvision
+from pathlib import Path
 from datamodule.transforms import VideoTransform
 from datamodule.av_dataset import cut_or_pad
 from detectors.retinaface import LandmarksDetector
 from detectors.video_process import VideoProcess
 from lightning import ModelModule
 from metrics import *
-
 
 
 class InferencePipeline(torch.nn.Module):
@@ -47,18 +47,47 @@ class InferencePipeline(torch.nn.Module):
 @hydra.main(version_base="1.3", config_path="configs", config_name="config")
 def main(cfg):
     pipeline = InferencePipeline(cfg)
-    transcript = pipeline(cfg.file_path)
-    transcript_truth = load_annotation(cfg.anno_path)
-    print('transcript truth: ', transcript_truth)
-    truth_transcript = [arr2txt(transcript_truth[_], start=1) for _ in range(truth_transcript.size(0))]
-    print('truth transcript: ', truth_transcript)
-    wer = []
-    cer = []
-    print(f"transcript: {transcript}")
 
-    wer.extend(WER(transcript, truth_transcript[0])) 
-    cer.extend(CER(transcript, truth_transcript[0]))
-    print(wer, cer)
+    if Path(cfg.file_path).is_file():
+        transcript = pipeline(cfg.file_path)
+        print(f"TRANSCRIPT: {transcript}")
+
+        if len(cfg.anno_path) != 0:
+            wer = []
+            cer = []
+            transcript_truth = torch.LongTensor([load_annotation(cfg.anno_path)]).cuda()
+            truth_transcript = [arr2txt(transcript_truth[_], start=1) for _ in range(transcript_truth.size(0))]
+            wer.extend(WER(transcript, truth_transcript[0])) 
+            cer.extend(CER(transcript, truth_transcript[0]))
+            print(np.array(wer).mean(), np.array(cer).mean())
+
+    elif Path(cfg.file_path).is_dir():
+        transcripts = []
+        videos = [os.path.join(cfg.file_path, video) for video in os.listdir(cfg.file_path)]
+        for vid in videos:
+            transcript = pipeline(vid)
+            transcripts.extend(transcript)
+        if len(cfg.anno_path) != 0:
+            wer = []
+            cer = []
+            # annotations_ = []
+            annotations = [os.path.join(cfg.anno_path, ann) for ann in os.listdir(cfg.anno_path)]
+            truth_annotations = []
+            for transc, ann in zip(transcripts, annotations):
+                transcript_truth = torch.LongTensor([load_annotation(ann)]).cuda()
+                truth_transcript = [arr2txt(transcript_truth[_], start=1) for _ in range(transcript_truth.size(0))]
+
+                wer.extend(np.array(WER(transc, truth_transcript[0])).mean()) 
+                cer.extend(np.array(CER(transc, truth_transcript[0])).mean())
+
+            print(wer, cer)
+
+
+
+
+
+
+
 
 if __name__ == "__main__":
     main()
