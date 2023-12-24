@@ -160,3 +160,5 @@ cython_debug/
 #.idea/
 
 ./auto_vsr/pretrained
+auto_vsr/pretrained
+
