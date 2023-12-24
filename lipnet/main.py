@@ -196,9 +196,13 @@ if __name__ == '__main__':
         if flag_annotation:
             wer = []
             cer = []
+            lwe = []
+            lce = []
             truth_annotation = [MyDatasetInference.arr2txt(annotation_truth[_], start=1) for _ in range(annotation_truth.size(0))]
-            wer.extend(WER(annotation_pred, truth_annotation)) 
-            cer.extend(CER(annotation_pred, truth_annotation))
+            wer.extend(WER(annotation_pred[-1], truth_annotation)) 
+            cer.extend(CER(annotation_pred[-1], truth_annotation))
+            lwe.append(LENGTH_SENTENCE_WORDS(annotation_pred[-1], truth_annotation[0]))
+            lce.append(LENGTH_SENTENCE_CHARS(annotation_pred[-1], truth_annotation[0]))
 
     elif path_obj.is_dir():
         dataset = MyDatasetInference(sys.argv[2],
@@ -207,7 +211,8 @@ if __name__ == '__main__':
         loader = dataset2dataloader(dataset, shuffle=False)
         wer = []
         cer = []
-
+        lwe = []
+        lce = []
         for (i_iter, input) in enumerate(loader):            
             vid = input.get('vid').cuda()
             txt = input.get('txt').cuda()
@@ -215,15 +220,9 @@ if __name__ == '__main__':
             y_pred = model(vid)
             annotation_pred = ctc_decode(y_pred[0])
             truth_txt = [MyDatasetInference.arr2txt(txt[_], start=1) for _ in range(txt.size(0))]
-            wer.extend(WER(annotation_pred[-1], truth_txt[0])) 
-            cer.extend(CER(annotation_pred[-1], truth_txt[0]))
+            wer.append(np.array(WER(annotation_pred[-1], truth_txt[0])).mean()) 
+            cer.append(np.array(CER(annotation_pred[-1], truth_txt[0])).mean())
+            lwe.append(LENGTH_SENTENCE_WORDS(annotation_pred[-1], truth_txt[0]))
+            lce.append(LENGTH_SENTENCE_CHARS(annotation_pred[-1], truth_txt[0]))
         print(wer, cer)
         print(np.array(wer).mean(), np.array(cer).mean())
-
-
-
-
-
-        
-        
-
