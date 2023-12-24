@@ -224,5 +224,4 @@ if __name__ == '__main__':
             cer.append(np.array(CER(annotation_pred[-1], truth_txt[0])).mean())
             lwe.append(LENGTH_SENTENCE_WORDS(annotation_pred[-1], truth_txt[0]))
             lce.append(LENGTH_SENTENCE_CHARS(annotation_pred[-1], truth_txt[0]))
-        print(wer, cer)
-        print(np.array(wer).mean(), np.array(cer).mean())
+        print(wer, cer, lwe, cer)
