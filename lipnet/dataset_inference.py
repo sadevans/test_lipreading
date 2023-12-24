@@ -39,31 +39,11 @@ class MyDatasetInference(Dataset):
         
                 
     def __getitem__(self, idx):
-        # (vid, spk, name) = self.data[idx]
         (vid, name) = self.data[idx]
-        # vid = self._load_vid(vid)
         print(vid, name)
         video, img_p = MyDatasetInference._load_video(vid)
         anno = self._load_anno(os.path.join(self.anno_path, name + '.txt'))
-
-        # if(self.phase == 'train'):
-        #     vid = HorizontalFlip(vid)
-          
-        # vid = ColorNormalize(vid)                   
-        
-        # vid_len = vid.shape[0]
         anno_len = anno.shape[0]
-        # vid = self._padding(vid, self.vid_pad)
-        # anno = self._padding(anno, self.txt_pad)
-        
-        # return {'vid': torch.FloatTensor(vid.transpose(3, 0, 1, 2)), 
-        #     'txt': torch.LongTensor(anno),
-        #     'txt_len': anno_len,
-        #     'vid_len': vid_len}
-        # return {'vid': vid[None,...], 
-        #     'txt': torch.LongTensor(anno),
-        #     'txt_len': anno_len,
-        #     'vid_len': vid_len}
         return {'vid': video, 
             'txt': torch.LongTensor(anno),
             'txt_len': anno_len}

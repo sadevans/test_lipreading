@@ -179,14 +179,14 @@ if __name__ == '__main__':
         exit
 
 
-    path_obj = Path(sys.argv[1])
+    path_obj = Path(sys.argv[2])
     if path_obj.is_file():
         flag_annotation = False
-        video, img_p = MyDatasetInference._load_video(sys.argv[1])
+        video, img_p = MyDatasetInference._load_video(sys.argv[2])
 
         if len(sys.argv) >=3 and Path(sys.argv[2]).is_file():
             flag_annotation = True
-            annotation_truth = load_annotation(sys.argv[2])
+            annotation_truth = load_annotation(sys.argv[3])
         y_pred = model(video[None,...].cuda())
 
         annotation_pred = ctc_decode(y_pred[0])
@@ -200,8 +200,8 @@ if __name__ == '__main__':
             cer.extend(MyDatasetInference.cer(annotation_pred, truth_annotation))
 
     elif path_obj.is_dir():
-        dataset = MyDatasetInference(opt.video_path,
-                opt.anno_path)
+        dataset = MyDatasetInference(sys.argv[2],
+                sys.argv[3])
         
         loader = dataset2dataloader(dataset, shuffle=False)
         wer = []
