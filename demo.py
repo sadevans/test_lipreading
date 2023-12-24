@@ -10,7 +10,7 @@ if len(sys.argv) > 1:
         else:
             print('Необходимо ввести путь к видео и к модели')
             exit
-    elif model == 'auto vsr':
+    elif model == 'auto_vsr':
         print('Model auto vsr')
         if len(sys.argv) != 4:
             print('Необходимо ввести путь к видео и к модели')
