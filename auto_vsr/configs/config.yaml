@@ -16,6 +16,7 @@ exp_name:
 gpus: 
 slurm_job_id:
 file_path:
+anno_path:
 ckpt_path:
 pretrained_model_path:
 transfer_frontend:

@@ -11,6 +11,16 @@ def txt2arr(txt, start):
         arr.append(letters.index(c) + start)
     return np.array(arr)
 
+
+@staticmethod
+def arr2txt(arr, start):
+    txt = []
+    for n in arr:
+        if(n >= start):
+            txt.append(letters[n - start])     
+    return ''.join(txt).strip()
+
+
 def load_annotation(name):
     with open(name, 'r') as f:
         lines = [line.strip().split(' ') for line in f.readlines()]
@@ -26,6 +36,7 @@ def WER(predict, truth):
     wer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in word_pairs]
     return wer
     
+
 @staticmethod
 def CER(predict, truth):
     """Character Error Rate"""  
