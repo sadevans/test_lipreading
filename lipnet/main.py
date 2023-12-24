@@ -180,10 +180,10 @@ if __name__ == '__main__':
         exit
 
 
-    path_obj = Path(sys.argv[2])
+    path_obj = Path(sys.argv[1])
     if path_obj.is_file():
         flag_annotation = False
-        video, img_p = MyDatasetInference._load_video(sys.argv[2])
+        video, img_p = MyDatasetInference._load_video(sys.argv[1])
 
         if len(sys.argv) >=3 and Path(sys.argv[2]).is_file():
             flag_annotation = True
@@ -205,8 +205,8 @@ if __name__ == '__main__':
             lce.append(LENGTH_SENTENCE_CHARS(annotation_pred[-1], truth_annotation[0]))
 
     elif path_obj.is_dir():
-        dataset = MyDatasetInference(sys.argv[2],
-                sys.argv[3])
+        dataset = MyDatasetInference(sys.argv[1],
+                sys.argv[2])
         
         loader = dataset2dataloader(dataset, shuffle=False)
         wer = []

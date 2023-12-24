@@ -22,7 +22,9 @@ def download_pretrained_model(model, model_name='dncnn3.pth'):
         elif model_name == 'vsr_trlrwlrs2lrs3vox2avsp_base.pth': 
             url = 'https://drive.google.com/file/d/19GA5SqDjAkI5S88Jt5neJRG-q5RUi5wi'   
 
-    gdown.download(url, model_dir, quite=True)
+    # gdown.download(url, model_dir, quite=True)
+    r = requests.get(url, allow_redirects=True)
+    open(os.path.join(model_dir, model_name), 'wb').write(r.content)
 
 
 if __name__ == '__main__':

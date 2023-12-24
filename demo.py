@@ -6,7 +6,7 @@ if len(sys.argv) > 1:
 
     if model  == 'lipnet':
         if len(sys.argv) == 4:
-            subprocess.run(['python', 'lipnet/main.py', f'{sys.argv[2]}', f'{sys.argv[3]}'])
+            subprocess.run(['python', 'lipnet/main.py', sys.argv[2], sys.argv[3]])
         else:
             print('Необходимо ввести путь к видео и к модели')
             exit
