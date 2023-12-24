@@ -44,6 +44,7 @@ class InferencePipeline(torch.nn.Module):
         return torchvision.io.read_video(data_filename, pts_unit="sec")[0].numpy()
 
 
+@hydra.main(version_base="1.3", config_path="configs", config_name="config")
 def main(cfg):
     pipeline = InferencePipeline(cfg)
 
@@ -55,11 +56,14 @@ def main(cfg):
         if len(cfg.anno_path) != 0:
             wer = []
             cer = []
+            lwe = []
+            lce = []
             transcript_truth = torch.LongTensor([load_annotation(cfg.anno_path)]).cuda()
             truth_transcript = [arr2txt(transcript_truth[_], start=1) for _ in range(transcript_truth.size(0))]
             wer.extend(WER(transcript, truth_transcript[0])) 
             cer.extend(CER(transcript, truth_transcript[0]))
-            print(np.array(wer).mean(), np.array(cer).mean())
+            lwe.append(LENGTH_SENTENCE_WORDS(transc, truth_transcript[0]))
+            lce.append(LENGTH_SENTENCE_CHARS(transc, truth_transcript[0]))
 
     elif Path(cfg.file_path).is_dir():
         transcripts = []
@@ -67,26 +71,28 @@ def main(cfg):
         for vid in videos:
             transcript = pipeline(vid)
             transcript = transcript.replace("'", ' ')
+            print(f"TRANSCRIPT: {transcript}")
             transcripts.append(transcript)
         if len(cfg.anno_path) != 0:
             wer = []
             cer = []
-            # annotations_ = []
+            lwe = []
+            lce = []
             annotations = [os.path.join(cfg.anno_path, ann) for ann in os.listdir(cfg.anno_path)]
             truth_annotations = []
             for transc, ann in zip(transcripts, annotations):
                 transcript_truth = torch.LongTensor([load_annotation(ann)]).cuda()
-                print(transcript_truth)
                 truth_transcript = [arr2txt(transcript_truth[_], start=1) for _ in range(transcript_truth.size(0))]
-                print('transcript:', transc)
-                print('truth transc: ', truth_transcript[0])
                 w = WER(transc, truth_transcript[0])
                 c = CER(transc, truth_transcript[0])
-                print(w, c)
                 wer.append(np.array(WER(transc, truth_transcript[0])).mean()) 
                 cer.append(np.array(CER(transc, truth_transcript[0])).mean())
+                lwe.append(LENGTH_SENTENCE_WORDS(transc, truth_transcript[0]))
+                lce.append(LENGTH_SENTENCE_CHARS(transc, truth_transcript[0]))
+
 
             print(wer, cer)
+            print(lwe, lce)
 
 
 if __name__ == "__main__":

@@ -42,3 +42,19 @@ def CER(predict, truth):
     """Character Error Rate"""  
     cer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in zip(predict, truth)]
     return cer
+
+@staticmethod
+def LENGTH_SENTENCE_WORDS(predict, truth):
+    """Length in words error"""
+    # cer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in zip(predict, truth)]
+    tr = len(truth.split(' '))
+    pr = len(predict.split(' '))
+    return 1 - pr/tr
+
+@staticmethod
+def LENGTH_SENTENCE_CHARS(predict, truth):
+    """Length in words error"""
+    # cer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in zip(predict, truth)]
+    tr = len(truth)
+    pr = len(predict)
+    return 1 - pr/tr
