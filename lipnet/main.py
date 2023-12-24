@@ -123,31 +123,6 @@ def ctc_decode(pred):
     return result
 
 
-@staticmethod
-def txt2array(txt, start):
-    arr = []
-    for c in list(txt):
-        arr.append(letters.index(c) + start)
-    return np.array(arr)
-
-@staticmethod
-def array2txt(arr, start):
-    txt = []
-    for n in arr:
-        if(n >= start):
-            txt.append(letters[n - start])     
-    return ''.join(txt).strip()
-
-
-def load_annotation(name):
-    with open(name, 'r') as f:
-        lines = [line.strip().split(' ') for line in f.readlines()]
-        txt = [line[2] for line in lines]
-        txt = list(filter(lambda s: not s.upper() in ['SIL', 'SP'], txt))
-
-    return MyDatasetInference.txt2arr(' '.join(txt).upper(), 1)
-
-
 def dataset2dataloader(dataset, num_workers=opt.num_workers, shuffle=True):
     return DataLoader(dataset,
         batch_size = opt.batch_size, 
