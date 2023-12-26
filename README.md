@@ -28,8 +28,8 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-Модель **auto-vsr** требует установки дополнительных пакетов. Скачать их придется с помощью клонирования соответствующих реплзиториев.
-Для начала установите пакет *fairseq*. Для этого необходимо запустить ряд команд в своем терминале:
+Модель `auto-vsr` требует установки дополнительных пакетов. Скачать их придется с помощью клонирования соответствующих реплзиториев.
+Для начала установите пакет `fairseq`. Для этого необходимо запустить ряд команд в своем терминале:
 ```bash
 cd auto_vsr/
 git clone https://github.com/pytorch/fairseq
@@ -38,7 +38,7 @@ pip install --editable ./
 cd ..
 ```
 
-Далее установите пакеты *face-recognition* и *face-alignment*.
+Далее установите пакеты `face-recognition` и `face-alignment`.
 Для этого поочереди склонируйте репозитории и установите все необходимые зависимости.
 ```bash
 git clone https://github.com/hhj1897/face_alignment.git
@@ -53,7 +53,7 @@ git lfs pull
 pip install -e .
 cd ..
 ```
-Проверьте, что в папке **auto-vsr** появились **fairseq**, **face-alignment** и **face-recognition**.
+Проверьте, что в папке `auto-vsr` появились `fairseq`, `face-alignment` и `face-recognition`.
 
 После этого можно установить основные зависимости:
 ```bash
