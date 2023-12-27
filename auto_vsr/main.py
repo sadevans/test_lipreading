@@ -11,6 +11,7 @@ from detectors.retinaface import LandmarksDetector
 from detectors.video_process import VideoProcess
 from lightning import ModelModule
 from metrics import *
+import pandas as pd
 
 
 class InferencePipeline(torch.nn.Module):
@@ -68,6 +69,8 @@ def main(cfg):
     elif Path(cfg.file_path).is_dir():
         transcripts = []
         videos = [os.path.join(cfg.file_path, video) for video in os.listdir(cfg.file_path)]
+        videos.sort()
+        videos = videos[-1::-1]
         for vid in videos:
             transcript = pipeline(vid)
             transcript = transcript.replace("'", ' ')
@@ -78,8 +81,14 @@ def main(cfg):
             cer = []
             lwe = []
             lce = []
+            df_vsr = pd.DataFrame(columns=['video name', 'truth annotation', 'predicted annotation', \
+        'len word truth', 'len word predicted', 'len char truth', 'len char predicted', 'wer', 'cer', \
+        'lwer', 'lcer'])
             annotations = [os.path.join(cfg.anno_path, ann) for ann in os.listdir(cfg.anno_path)]
+            annotations.sort()
+            annotations = annotations[-1::-1]
             truth_annotations = []
+            i_iter = 0
             for transc, ann in zip(transcripts, annotations):
                 transcript_truth = torch.LongTensor([load_annotation(ann)]).cuda()
                 truth_transcript = [arr2txt(transcript_truth[_], start=1) for _ in range(transcript_truth.size(0))]
@@ -90,9 +99,22 @@ def main(cfg):
                 lwe.append(LENGTH_SENTENCE_WORDS(transc, truth_transcript[0]))
                 lce.append(LENGTH_SENTENCE_CHARS(transc, truth_transcript[0]))
 
+                new_row = {'video name':i_iter, 'truth annotation':truth_transcript[0], 'predicted annotation':transc, \
+                'len word truth':len(truth_transcript[0].split(' ')), 'len word predicted':len(transc.split(' '))\
+                , 'len char truth':len(truth_transcript[0]), 'len char predicted':len(transc), \
+                'wer':np.array(WER(transc, truth_transcript[0])).mean(), 'cer':np.array(CER(transc, truth_transcript[0])).mean(), \
+                'lwer':LENGTH_SENTENCE_WORDS(transc, truth_transcript[0]), 'lcer':LENGTH_SENTENCE_CHARS(transc, truth_transcript[0])
+
+                    }
+                df_vsr.loc[i_iter] = new_row
+                
+                i_iter += 1
 
             print(wer, cer)
             print(lwe, lce)
+            df_vsr.to_excel('./vsr_results.xlsx', index=False)
+            df_vsr.to_csv('./vsr_results.csv', index=False)
+
 
 
 if __name__ == "__main__":

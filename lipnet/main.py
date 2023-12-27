@@ -16,6 +16,7 @@ from model import LipNet
 import editdistance
 import torch.optim as optim
 from metrics import *
+import pandas as pd
 
 import subprocess
 
@@ -157,6 +158,7 @@ if __name__ == '__main__':
 
     path_obj = Path(sys.argv[1])
     if path_obj.is_file():
+        print('FILE')
         flag_annotation = False
         video, img_p = MyDatasetInference._load_video(sys.argv[1])
 
@@ -180,6 +182,7 @@ if __name__ == '__main__':
             lce.append(LENGTH_SENTENCE_CHARS(annotation_pred[-1], truth_annotation[0]))
 
     elif path_obj.is_dir():
+        print('DIR')
         dataset = MyDatasetInference(sys.argv[1],
                 sys.argv[2])
         
@@ -188,6 +191,9 @@ if __name__ == '__main__':
         cer = []
         lwe = []
         lce = []
+        df_lipnet = pd.DataFrame(columns=['video name', 'truth annotation', 'predicted annotation', \
+        'len word truth', 'len word predicted', 'len char truth', 'len char predicted', 'wer', 'cer', \
+        'lwer', 'lcer'])
         for (i_iter, input) in enumerate(loader):            
             vid = input.get('vid').cuda()
             txt = input.get('txt').cuda()
@@ -199,4 +205,16 @@ if __name__ == '__main__':
             cer.append(np.array(CER(annotation_pred[-1], truth_txt[0])).mean())
             lwe.append(LENGTH_SENTENCE_WORDS(annotation_pred[-1], truth_txt[0]))
             lce.append(LENGTH_SENTENCE_CHARS(annotation_pred[-1], truth_txt[0]))
+            new_row = {'video name':i_iter, 'truth annotation':truth_txt[0], 'predicted annotation':annotation_pred[-1], \
+        'len word truth':len(truth_txt[0].split(' ')), 'len word predicted':len(annotation_pred[-1].split(' '))\
+        , 'len char truth':len(truth_txt[0]), 'len char predicted':len(annotation_pred[-1]), \
+        'wer':np.array(WER(annotation_pred[-1], truth_txt[0])).mean(), 'cer':np.array(CER(annotation_pred[-1], truth_txt[0])).mean(), \
+        'lwer':LENGTH_SENTENCE_WORDS(annotation_pred[-1], truth_txt[0]), 'lcer':LENGTH_SENTENCE_CHARS(annotation_pred[-1], truth_txt[0])
+
+            }
+            df_lipnet.loc[i_iter] = new_row
         print(wer, cer, lwe, cer)
+        print(df_lipnet)
+        df_lipnet.to_excel('./lipnet_results.xlsx', index=False)
+        df_lipnet.to_csv('./lipnet_results.csv', index=False)
+

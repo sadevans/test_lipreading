@@ -13,8 +13,6 @@ if len(sys.argv) > 1:
             exit
     elif model == 'auto vsr':
         print('Model auto vsr')
-        # if len(sys.argv) != 4:
-        #     print('Необходимо ввести путь к видео и к модели')
         if len(sys.argv) == 4:
             subprocess.run(['python', 'auto_vsr/main.py', 'data.modality=video', 'file_path='+sys.argv[2], \
                             'pretrained_model_path='+sys.argv[3]])
