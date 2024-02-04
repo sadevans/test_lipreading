@@ -161,4 +161,5 @@ cython_debug/
 
 ./auto_vsr/pretrained
 auto_vsr/pretrained
-
+data/
+./lipnet/pretrained
