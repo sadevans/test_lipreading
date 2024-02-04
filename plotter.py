@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import seaborn as sns
-sns.set_style('darkgrid')
+sns.set_style('white')
 sns.set (font_scale= 1 )
-sns.color_palette("Paired")
+# sns.color_palette("Paired")
 
 if __name__ == '__main__':
     df_lipnet_overlapped_name = 'lipnet_overlapped'
@@ -125,21 +125,21 @@ if __name__ == '__main__':
     # plt.show()
 
     # LEN PRED CHARS VS LEN TRUTH VSR
-    # plt.figure(figsize=(8, 6))
-    # sns.scatterplot(x='len char truth', y='len char predicted', data=df_vsr_extended, color='orange', s=200, marker='D')
-    # plt.xlabel('Длина истинной аннотации в символах', fontsize=14)
-    # plt.ylabel('Длина предсказанной аннотации в символах', fontsize=14)
-    # plt.savefig(f'./figs/{df_vsr_extended_name}' + '_len_pred_vs_len_truth.png', dpi=400)
+    plt.figure(figsize=(8, 6))
+    sns.scatterplot(x='len char truth', y='len char predicted', data=df_vsr_extended, color='#fe981e', s=200, marker='D')
+    plt.xlabel('Длина истинной аннотации в символах', fontsize=14)
+    plt.ylabel('Длина предсказанной аннотации в символах', fontsize=14)
+    plt.savefig(f'./figs/{df_vsr_extended_name}' + '_len_pred_vs_len_truth1.svg', format='svg',dpi=400)
 
-    # plt.show()
+    plt.show()
 
-    # plt.figure(figsize=(8, 6))
-    # sns.scatterplot(x='len word truth', y='len word predicted', data=df_vsr_extended, color='green', s=200, marker='^')
-    # plt.xlabel('Длина истинной аннотации в словах', fontsize=14)
-    # plt.ylabel('Длина предсказанной аннотации в словах', fontsize=14)
-    # plt.savefig(f'./figs/{df_vsr_extended_name}' + '_len_pred_vs_len_truth_words.png', dpi=400)
+    plt.figure(figsize=(8, 6))
+    sns.scatterplot(x='len word truth', y='len word predicted', data=df_vsr_extended, color='#7030f3', s=200, marker='^')
+    plt.xlabel('Длина истинной аннотации в словах', fontsize=14)
+    plt.ylabel('Длина предсказанной аннотации в словах', fontsize=14)
+    plt.savefig(f'./figs/{df_vsr_extended_name}' + '_len_pred_vs_len_truth_words1.svg', format='svg',dpi=400)
 
-    # plt.show()
+    plt.show()
 
 
     # plt.figure(figsize=(4, 3))
@@ -149,9 +149,9 @@ if __name__ == '__main__':
 
     # plt.show()
 
-    plt.figure(figsize=(4, 3))
-    sns.pairplot(df_lipnet_overlapped.drop(columns=['video name']))
-    plt.suptitle('Pairplot для взаимосвязей между переменными', y=1.02)
-    plt.savefig(f'./figs/{df_lipnet_overlapped_name}' + '_pairplots.png', dpi=400)
+    # plt.figure(figsize=(4, 3))
+    # sns.pairplot(df_lipnet_overlapped.drop(columns=['video name']))
+    # plt.suptitle('Pairplot для взаимосвязей между переменными', y=1.02)
+    # plt.savefig(f'./figs/{df_lipnet_overlapped_name}' + '_pairplots.png', dpi=400)
 
-    plt.show()
+    # plt.show()
